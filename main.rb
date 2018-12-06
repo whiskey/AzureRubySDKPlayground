@@ -1,6 +1,6 @@
 require 'azure_sdk'
 require 'azure_mgmt_resources'
-
+require 'rspec'
 
 module SpecHelper
   class Azure
@@ -31,6 +31,26 @@ module SpecHelper
 end
 
 
-
 profile_client = SpecHelper::Azure::SDK.client(Azure::Resources)
-profile_client.resource_groups.list().each{ |group| puts group.name }
+profile_client.resource_groups.list.each do |group|
+
+  describe group do
+    it "#{group.name} has a valid name" do
+      expect(group.name).to be_truthy
+    end
+
+    it "#{group.name} has a valid location" do
+      expect(group.location).to be_truthy
+      # EU-only locations
+      expect(%w(northeurope westeurope francecentral)).to include(group.location)
+    end
+
+    it "#{group.id} should have proper tagging" do
+      tags = group.tags
+      #expect(tags&.has_key?(:Name)).to be_truthy
+      expect(tags&.has_key?(:Owner)).to be_truthy
+      expect(tags&.has_key?(:EnvironmentType)).to be_truthy
+    end
+  end
+
+end
